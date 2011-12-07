@@ -66,7 +66,7 @@ class Grok
   def compile(pattern)
     @capture_map = {}
 
-    iterations_left = 100
+    iterations_left = 1000
     @pattern = pattern
     @expanded_pattern = pattern
     index = 0
