@@ -48,15 +48,19 @@ class Grok
     @logger.info("Adding pattern", name => pattern)
     @patterns[name] = pattern
     return nil
-  end
+  end # def add_pattern
 
   public
   def add_patterns_from_file(path)
     file = File.new(path, "r")
     file.each do |line|
-      next if line =~ /^\s*#/
+      # Skip comments
+      next if line =~ /^\s*#/ 
+      # File format is: NAME ' '+ PATTERN '\n'
       name, pattern = line.gsub(/^\s*/, "").split(/\s+/, 2)
+      # If the line is malformed, skip it.
       next if pattern.nil?
+      # Trim newline and add the pattern.
       add_pattern(name, pattern.chomp)
     end
     return nil
@@ -88,18 +92,34 @@ class Grok
         # create a named capture index that we can push later as the named
         # pattern. We do this because ruby regexp can't capture something
         # by the same name twice.
-        p = @patterns[m["pattern"]]
+        regex = @patterns[m["pattern"]]
+        #puts "patterns[#{m["pattern"]}] => #{regex}"
 
         capture = "a#{index}" # named captures have to start with letters?
         #capture = "%04d" % "#{index}" # named captures have to start with letters?
-        replacement_pattern = "(?<#{capture}>#{p})"
-        #p(:input => m[0], :pattern => replacement_pattern)
+        replacement_pattern = "(?<#{capture}>#{regex})"
         @capture_map[capture] = m["name"]
-        @expanded_pattern.sub!(m[0], replacement_pattern)
+
+        #puts "Before: #{@expanded_pattern}"
+        #puts "m[0]: #{m[0]}"
+        #puts "replacement_pattern => #{replacement_pattern}"
+        #puts "Proposed: #{@expanded_pattern.sub(m[0], replacement_pattern)}"
+
+        # Ruby's String#sub() has a bug (or misfeature) that causes it to do bad
+        # things to backslashes in string replacements, so let's work around it
+        # See this gist for more details: https://gist.github.com/1491437
+        # This hack should resolve LOGSTASH-226.
+        @expanded_pattern.sub!(m[0]) { |s| replacement_pattern }
+
+        #puts "After: #{@expanded_pattern}"
+        #puts "m[0]: #{m[0]}"
+        #puts "replacement_pattern => #{replacement_pattern}"
         index += 1
       end
     end
 
+    #@logger.debug("Finished expanding", :string => @expanded_pattern)
+    #puts "Expanded: #{@expanded_pattern}"
     @regexp = Regexp.new(@expanded_pattern)
     @logger.debug("Grok compiled OK", :pattern => pattern,
                   :expanded_pattern => @expanded_pattern)
