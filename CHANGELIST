@@ -1,3 +1,7 @@
+* 0.10.1
+  - No code changes.
+  - Bump rubygem 'cabin' version dep
+
 * 0.10.0
   - Add Grok#discover support
 
