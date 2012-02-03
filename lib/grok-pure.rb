@@ -4,9 +4,17 @@ require "cabin"
 
 # TODO(sissel): Check if 'grok' c-ext has been loaded and abort?
 class Grok
+  # The pattern input
   attr_accessor :pattern
+  
+  # The fully-expanded pattern (in regex form)
   attr_accessor :expanded_pattern
+
+  # The logger
   attr_accessor :logger
+
+  # The dictionary of pattern names to pattern expressions
+  attr_accessor :patterns
   
   PATTERN_RE = \
     /%\{    # match '%{' not prefixed with '\'
@@ -72,7 +80,7 @@ class Grok
 
     iterations_left = 1000
     @pattern = pattern
-    @expanded_pattern = pattern
+    @expanded_pattern = pattern.clone
     index = 0
 
     # Replace any instances of '%{FOO}' with that pattern.
@@ -151,8 +159,9 @@ class Grok
 
   private
   def init_discover
-    @discover = GrokDiscover.new(self)
-    @discover.logmask = logmask
+    require "grok/pure/discovery"
+    @discover = Grok::Discovery.new(self)
+    @discover.logger = @logger
   end # def init_discover
 
   public

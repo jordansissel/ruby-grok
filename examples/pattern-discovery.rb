@@ -2,7 +2,7 @@
 #
 
 require "rubygems"
-require "grok"
+require "grok-pure"
 require "pp"
 
 grok = Grok.new
@@ -10,16 +10,22 @@ grok = Grok.new
 # Load some default patterns that ship with grok.
 # See also: 
 #   http://code.google.com/p/semicomplete/source/browse/grok/patterns/base
-grok.add_patterns_from_file("/usr/local/share/grok/patterns/base")
+grok.add_patterns_from_file("patterns/pure-ruby/base")
 
 # Using the patterns we know, try to build a grok pattern that best matches 
 # a string we give. Let's try Time.now.to_s, which has this format;
 # => Fri Apr 16 19:15:27 -0700 2010
-input = "Time is #{Time.now}"
+input = "http://www.google.com/ and 00:de:ad:be:ef:00 with 'Something Nice'"
 pattern = grok.discover(input)
+
+#g = Grok.new
+#g.add_patterns_from_file("patterns/pure-ruby/base")
+#g.compile("%{MAC}")
+#p g.match("00:de:ad:be:ef:00").captures
 
 puts "Input: #{input}"
 puts "Pattern: #{pattern}"
+exit
 grok.compile(pattern)
 
 # Sleep to change time.
