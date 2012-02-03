@@ -66,6 +66,7 @@ class Grok
       next if line =~ /^\s*#/ 
       # File format is: NAME ' '+ PATTERN '\n'
       name, pattern = line.gsub(/^\s*/, "").split(/\s+/, 2)
+      #p name => pattern
       # If the line is malformed, skip it.
       next if pattern.nil?
       # Trim newline and add the pattern.
@@ -78,7 +79,7 @@ class Grok
   def compile(pattern)
     @capture_map = {}
 
-    iterations_left = 1000
+    iterations_left = 10000
     @pattern = pattern
     @expanded_pattern = pattern.clone
     index = 0

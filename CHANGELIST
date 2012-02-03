@@ -1,3 +1,6 @@
+* 0.10.0
+  - Add Grok#discover support
+
 * 0.9.4
   - Fix a bug causing all backslashes in patterns to be doubled due to a
     strange behavior in Ruby's String#sub. This is now worked around.
