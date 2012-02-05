@@ -1,5 +1,6 @@
 require "rubygems"
 require "logger"
+require "grok/pure/discovery"
 require "cabin"
 
 # TODO(sissel): Check if 'grok' c-ext has been loaded and abort?
