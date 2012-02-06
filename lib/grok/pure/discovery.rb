@@ -1,3 +1,4 @@
+require "grok/namespace"
 require "grok-pure"
 require "logger"
 
