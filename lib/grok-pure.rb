@@ -137,7 +137,11 @@ class Grok
 
   public
   def match(text)
-    match = @regexp.match(text)
+    begin
+      match = @regexp.match(text)
+    rescue
+      @logger.debug("Regexp match raised exception. Ignored.")
+    end
 
     if match
       grokmatch = Grok::Match.new
