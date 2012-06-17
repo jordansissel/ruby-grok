@@ -5,6 +5,8 @@ require "cabin"
 
 # TODO(sissel): Check if 'grok' c-ext has been loaded and abort?
 class Grok
+  class PatternError < StandardError; end
+
   # The pattern input
   attr_accessor :pattern
   
@@ -88,7 +90,7 @@ class Grok
     # Replace any instances of '%{FOO}' with that pattern.
     loop do
       if iterations_left == 0
-        raise "Deep recursion pattern compilation of #{pattern.inspect} - expanded: #{@expanded_pattern.inspect}"
+        raise PatternError, "Deep recursion pattern compilation of #{pattern.inspect} - expanded: #{@expanded_pattern.inspect}"
       end
       iterations_left -= 1
       m = PATTERN_RE.match(@expanded_pattern)
@@ -125,6 +127,8 @@ class Grok
         #puts "m[0]: #{m[0]}"
         #puts "replacement_pattern => #{replacement_pattern}"
         index += 1
+      else
+        raise PatternError, "pattern #{m[0]} not defined"
       end
     end
 

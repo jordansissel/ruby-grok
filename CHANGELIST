@@ -1,3 +1,7 @@
+* 0.10.?
+  - add Grok::PatternError exception class
+  - raise PatternError when a pattern contains an unknown %{expansion}
+
 * 0.10.1
   - No code changes.
   - Bump rubygem 'cabin' version dep

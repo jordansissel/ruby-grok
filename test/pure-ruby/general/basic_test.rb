@@ -55,4 +55,17 @@ class GrokBasicTests < Test::Unit::TestCase
     @grok.compile("%{TEST}")
     assert_equal("(?<a0>\\d+)", @grok.expanded_pattern)
   end
+
+  def test_grok_expanded_unknown_pattern
+    assert_raise(Grok::PatternError, "unknown pattern %{foo}") do
+      @grok.compile("%{foo}")
+    end
+  end
+
+  def test_grok_expanded_unknown_pattern_embedded
+    @grok.add_pattern("test", "hello world")
+    assert_raise(Grok::PatternError, "unknown pattern %{foo}") do
+      @grok.compile("%{test} bar %{foo} baz")
+    end
+  end
 end
