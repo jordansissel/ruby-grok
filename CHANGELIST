@@ -1,4 +1,4 @@
-* 0.10.?
+* 0.10.7
   - add Grok::PatternError exception class
   - raise PatternError when a pattern contains an unknown %{expansion}
 
