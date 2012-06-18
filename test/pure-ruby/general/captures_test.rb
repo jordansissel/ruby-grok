@@ -86,7 +86,7 @@ class GrokPatternCapturingTests < Test::Unit::TestCase
 
   def test_nesting_recursion
     @grok.add_pattern("foo", "%{foo}")
-    assert_raises(RuntimeError) do
+    assert_raises(Grok::PatternError) do
       @grok.compile("%{foo}")
     end
   end
