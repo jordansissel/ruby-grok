@@ -49,7 +49,7 @@ MONTHNUM (?:0?[1-9]|1[0-2])
 MONTHDAY (?:3[01]|[1-2]?[0-9]|0?[1-9])
 
 # Days: Monday, Tue, Thu, etc...
-DAY (?:Mon(?:day)?|Tue(?:sday)?|Wed(?:nesday)?|Thu(?:rsday)?|Fri(?:day)?|Sat(?:urday)?|Sun(?:day)?)
+DAY (?:[Mm]on(?:day)?|[Tt]ue(?:sday)?|[Ww]ed(?:nesday)?|[Tt]hu(?:rsday)?|[Ff]ri(?:day)?|[Ss]at(?:urday)?|[Ss]un(?:day)?)
 
 # Years?
 YEAR [0-9]+
