@@ -19,9 +19,7 @@ class Grok::Match
     #p :expanded => @grok.expanded_pattern
     #p :map => @grok.capture_map
     @match.names.zip(@match.captures).each do |id, value|
-      #p :match => id, :value => value
-      name = @grok.capture_name(id)
-      #next if value == nil
+      name = @grok.capture_name(id) || id
       yield name, value
     end
 
