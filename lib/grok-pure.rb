@@ -23,7 +23,7 @@ class Grok
     /%\{    # match '%{' not prefixed with '\'
        (?<name>     # match the pattern name
          (?<pattern>[A-z0-9]+)
-         (?::(?<subname>[@A-z0-9_:.-]+))?
+         (?::(?<subname>[@\[\]A-z0-9_:.-]+))?
        )
        (?:=(?<definition>
          (?:
