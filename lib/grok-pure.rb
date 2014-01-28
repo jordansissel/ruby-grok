@@ -44,6 +44,14 @@ class Grok
   GROK_ERROR_PCRE_ERROR = 6
   GROK_ERROR_NOMATCH = 7
 
+
+  DEFAULT_OPTIONS = {
+    :case_sensitive => true,
+    :named_captures_only => true,
+    :keep_empty_captures => false,
+    :full_names => false
+  }
+
   public
   def initialize
     @patterns = {}
@@ -79,7 +87,7 @@ class Grok
   end # def add_patterns_from_file
 
   public
-  def compile(pattern)
+  def compile(pattern, options = DEFAULT_OPTIONS)
     @capture_map = {}
 
     iterations_left = 10000
@@ -105,12 +113,12 @@ class Grok
         # pattern. We do this because ruby regexp can't capture something
         # by the same name twice.
         regex = @patterns[m["pattern"]]
-        #puts "patterns[#{m["pattern"]}] => #{regex}"
 
-        capture = "a#{index}" # named captures have to start with letters?
-        #capture = "%04d" % "#{index}" # named captures have to start with letters?
-        replacement_pattern = "(?<#{capture}>#{regex})"
-        @capture_map[capture] = m["name"]
+        grouping = "<#{m["name"]}>"
+        if options[:named_captures_only] && m["subname"].nil?
+          grouping = ":"
+        end
+        replacement_pattern = "(?#{grouping}#{regex})"
 
         #puts "Before: #{@expanded_pattern}"
         #puts "m[0]: #{m[0]}"
@@ -137,13 +145,47 @@ class Grok
     @regexp = Regexp.new(@expanded_pattern)
     @logger.debug("Grok compiled OK", :pattern => pattern,
                   :expanded_pattern => @expanded_pattern)
+
+
+    # Compile the 'match' builder.
+    code = []
+    code << "match = @regexp.match(text)"
+    code << "grok_captures = {}"
+    code << "return grok_captures unless match"
+    code << "captures = match.captures"
+    captures_array_map = @regexp.named_captures
+    @regexp.named_captures.each do |name, capture_numbers|
+      # Use "foo" of %{BAR:foo} if full_names isn't requested.
+      name = name.split(":")[1] if name.include?(":") if !options[:full_names]
+      capture_numbers.each do |number|
+        code << "value = captures[#{number - 1}]"
+        code << "if block"
+        code << "  block.call(#{name.inspect}, value)"
+        code << "else"
+        code << "  grok_captures[#{name.inspect}] = value if !value.nil?"
+        code << "end"
+      end
+    end
+    code << "return grok_captures"
+    #puts "---"
+    #puts code
+    #puts "---"
+
+    code = code.collect { |line| "  #{line}" }
+    @matchcode = eval("lambda do |text, &block| \n#{code.join("\n")}\nend\n", binding, "grok(#{pattern})")
   end # def compile
+
+  public
+  def match_hash(text, &block)
+    return @matchcode.call(text, &block)
+  end
 
   public
   def match(text)
     match = @regexp.match(text)
 
     if match
+
       grokmatch = Grok::Match.new
       grokmatch.subject = text
       grokmatch.start, grokmatch.end = match.offset(0)
