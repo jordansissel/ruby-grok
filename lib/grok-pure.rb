@@ -141,7 +141,20 @@ class Grok
 
   public
   def match(text)
-    match = @regexp.match(text)
+    begin
+      match = @regexp.match(text)
+    rescue ArgumentError
+      # If an ArgumentError exception is raised, something is wrong with the text
+      # It may be an encoding problem on ruby 1.9
+      if String.method_defined?(:valid_encoding?)
+        unless text.valid_encoding? 
+          # on invalid encoding, remove invalid sequences and try again
+          text.encode!(text.encoding, text.encoding, :invalid => :replace, :replace => '')
+          retry
+        end
+      end
+      @logger.debug("Regexp match raised ArgumentError exception. Ignored.")
+    end
 
     if match
       grokmatch = Grok::Match.new
