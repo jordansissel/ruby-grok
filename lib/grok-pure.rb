@@ -134,7 +134,7 @@ class Grok
 
     #@logger.debug("Finished expanding", :string => @expanded_pattern)
     #puts "Expanded: #{@expanded_pattern}"
-    @regexp = Regexp.new(@expanded_pattern)
+    @regexp = Regexp.new(@expanded_pattern, Regexp::MULTILINE)
     @logger.debug("Grok compiled OK", :pattern => pattern,
                   :expanded_pattern => @expanded_pattern)
   end # def compile
