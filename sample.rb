@@ -4,20 +4,19 @@ require "grok-pure"
 patterns = {}
 
 matches = [
-  "%{FOO=\\d+}",
-  #"%{FOO=foo}",
+  "%{FOO=\\d+}"
 ]
 
-pile = Grok::Pile.new
-pile.add_patterns_from_file("patterns/pure-ruby/base")
+grok = Grok.new
+grok.add_patterns_from_file("patterns/pure-ruby/base")
 matches.collect do |m|
-  pile.compile(m)
+  grok.compile(m)
 end
 
 bytes = 0
 time_start = Time.now.to_f
 $stdin.each do |line|
-  grok, m = pile.match(line)
+  m = grok.match(line)
   if m
     m.each_capture do |key, value|
       p key => value
