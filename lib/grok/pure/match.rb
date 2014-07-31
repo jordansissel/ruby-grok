@@ -2,8 +2,6 @@ require "grok-pure"
 
 class Grok::Match
   attr_accessor :subject
-  attr_accessor :start
-  attr_accessor :end
   attr_accessor :grok
   attr_accessor :match
 
@@ -15,8 +13,12 @@ class Grok::Match
   public
   def each_capture
     @match.names.zip(@match.captures).each do |id, value|
-      name = @grok.capture_name(id) || "_:#{id}"
-      yield name, value
+      if !@grok.named_captures_only
+        name = @grok.capture_name(id) || "_:#{id}"
+        yield name, value
+      else
+        yield id, value
+      end
     end
 
   end # def each_capture

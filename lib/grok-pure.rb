@@ -18,7 +18,9 @@ class Grok
 
   # The dictionary of pattern names to pattern expressions
   attr_accessor :patterns
-  
+
+  attr_accessor :named_captures_only
+
   PATTERN_RE = \
     /%\{    # match '%{' not prefixed with '\'
        (?<name>     # match the pattern name
@@ -45,11 +47,12 @@ class Grok
   GROK_ERROR_NOMATCH = 7
 
   public
-  def initialize
+  def initialize(named_captures_only = false)
     @patterns = {}
     @logger = Cabin::Channel.new
     @logger.subscribe(Logger.new(STDOUT))
     @logger.level = :warn
+    @named_captures_only = named_captures_only
 
     # TODO(sissel): Throw exception if we aren't using Ruby 1.9.2 or newer.
   end # def initialize
@@ -79,7 +82,7 @@ class Grok
   end # def add_patterns_from_file
 
   public
-  def compile(pattern, named_captures_only = false)
+  def compile(pattern)
     @capture_map = {}
 
     iterations_left = 10000
@@ -105,21 +108,21 @@ class Grok
         # pattern. We do this because ruby regexp can't capture something
         # by the same name twice.
         regex = @patterns[m["pattern"]]
-        capture = "a#{index}" # named captures have to start with letters?
         name = m["name"]
 
-        if named_captures_only
-          syntax,semantic = name.split(":")
-          if semantic.nil?
+        if @named_captures_only
+          # no semantic
+          if name.index(":").nil?
             replacement_pattern = "(?:#{regex})"
           else
-            replacement_pattern = "(?<#{capture}>#{regex})"
+            replacement_pattern = "(?<#{name}>#{regex})"
           end
         else
+          capture = "a#{index}" # named captures have to start with letters?
           replacement_pattern = "(?<#{capture}>#{regex})"
+          @capture_map[capture] = name
+          index += 1
         end
-
-        @capture_map[capture] = name
 
         # Ruby's String#sub() has a bug (or misfeature) that causes it to do bad
         # things to backslashes in string replacements, so let's work around it
@@ -127,7 +130,6 @@ class Grok
         # This hack should resolve LOGSTASH-226.
         @expanded_pattern.sub!(m[0]) { |s| replacement_pattern }
         @logger.debug? and @logger.debug("replacement_pattern => #{replacement_pattern}")
-        index += 1
       else
         raise PatternError, "pattern #{m[0]} not defined"
       end
@@ -145,10 +147,10 @@ class Grok
     if match
       grokmatch = Grok::Match.new
       grokmatch.subject = text
-      grokmatch.start, grokmatch.end = match.offset(0)
       grokmatch.grok = self
       grokmatch.match = match
-      @logger.debug("Regexp match object", :names => match.names, :captures => match.captures)
+      @logger.debug? and @logger.debug("Regexp match object", :names => match.names,
+                                       :captures => match.captures)
       return grokmatch
     else
       return false
