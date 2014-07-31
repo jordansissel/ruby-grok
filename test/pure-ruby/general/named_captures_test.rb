@@ -19,7 +19,6 @@ class NamedCapturesTest < Test::Unit::TestCase
     assert_not_nil(match.captures["IPORHOST:clientip"][0])
     assert_equal(match.captures["NUMBER:response"][0], "200")
     assert_equal(match.captures["URIHOST"][0], "8rursodiol.enjin.com")
-    puts match.captures
   end
 
   def test_named_captures_only_true
@@ -31,7 +30,6 @@ class NamedCapturesTest < Test::Unit::TestCase
     assert_equal(match.captures["IPORHOST:clientip"][0], "31.184.238.164")
     assert_equal(match.captures["NUMBER:response"][0], "200")
     assert_equal(match.captures["HTTPDATE:timestamp"][0], "24/Jul/2014:05:35:37 +0530")
-    puts match.captures
   end
 
 end
