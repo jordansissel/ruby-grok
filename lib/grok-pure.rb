@@ -19,6 +19,8 @@ class Grok
   # The dictionary of pattern names to pattern expressions
   attr_accessor :patterns
 
+  # Flag to indicate if we want only named captures like PATTERN:foo
+  # This will optimize the match call if set to true.
   attr_accessor :named_captures_only
 
   PATTERN_RE = \
@@ -111,13 +113,15 @@ class Grok
         name = m["name"]
 
         if @named_captures_only
-          # no semantic
+          # no semantic means we don't need to capture
           if name.index(":").nil?
             replacement_pattern = "(?:#{regex})"
           else
+            # no indirection here, just use the name
             replacement_pattern = "(?<#{name}>#{regex})"
           end
         else
+          # fall back to indirection
           capture = "a#{index}" # named captures have to start with letters?
           replacement_pattern = "(?<#{capture}>#{regex})"
           @capture_map[capture] = name
