@@ -79,7 +79,7 @@ class Grok
   end # def add_patterns_from_file
 
   public
-  def compile(pattern)
+  def compile(pattern, named_captures_only = false)
     @capture_map = {}
 
     iterations_left = 10000
@@ -105,37 +105,36 @@ class Grok
         # pattern. We do this because ruby regexp can't capture something
         # by the same name twice.
         regex = @patterns[m["pattern"]]
-        #puts "patterns[#{m["pattern"]}] => #{regex}"
-
         capture = "a#{index}" # named captures have to start with letters?
-        #capture = "%04d" % "#{index}" # named captures have to start with letters?
-        replacement_pattern = "(?<#{capture}>#{regex})"
-        @capture_map[capture] = m["name"]
+        name = m["name"]
 
-        #puts "Before: #{@expanded_pattern}"
-        #puts "m[0]: #{m[0]}"
-        #puts "replacement_pattern => #{replacement_pattern}"
-        #puts "Proposed: #{@expanded_pattern.sub(m[0], replacement_pattern)}"
+        if named_captures_only
+          syntax,semantic = name.split(":")
+          if semantic.nil?
+            replacement_pattern = "(?:#{regex})"
+          else
+            replacement_pattern = "(?<#{capture}>#{regex})"
+          end
+        else
+          replacement_pattern = "(?<#{capture}>#{regex})"
+        end
+
+        @capture_map[capture] = name
 
         # Ruby's String#sub() has a bug (or misfeature) that causes it to do bad
         # things to backslashes in string replacements, so let's work around it
         # See this gist for more details: https://gist.github.com/1491437
         # This hack should resolve LOGSTASH-226.
         @expanded_pattern.sub!(m[0]) { |s| replacement_pattern }
-
-        #puts "After: #{@expanded_pattern}"
-        #puts "m[0]: #{m[0]}"
-        #puts "replacement_pattern => #{replacement_pattern}"
+        @logger.debug? and @logger.debug("replacement_pattern => #{replacement_pattern}")
         index += 1
       else
         raise PatternError, "pattern #{m[0]} not defined"
       end
     end
 
-    #@logger.debug("Finished expanding", :string => @expanded_pattern)
-    #puts "Expanded: #{@expanded_pattern}"
     @regexp = Regexp.new(@expanded_pattern, Regexp::MULTILINE)
-    @logger.debug("Grok compiled OK", :pattern => pattern,
+    @logger.debug? and @logger.debug("Grok compiled OK", :pattern => pattern,
                   :expanded_pattern => @expanded_pattern)
   end # def compile
 
