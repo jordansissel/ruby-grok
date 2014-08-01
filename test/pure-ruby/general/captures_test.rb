@@ -12,8 +12,6 @@ class GrokPatternCapturingTests < Test::Unit::TestCase
     @grok.compile("%{foo}")
     match = @grok.match("hello world")
     assert_respond_to(match, :captures)
-    assert_respond_to(match, :start)
-    assert_respond_to(match, :end)
     assert_respond_to(match, :subject)
     assert_respond_to(match, :each_capture)
   end
@@ -37,13 +35,7 @@ class GrokPatternCapturingTests < Test::Unit::TestCase
       assert(val.is_a?(String), "Grok::Match::each_capture should yield string,string, got #{key.class.name} as first argument.")
     end
 
-    assert_kind_of(Fixnum, match.start)
-    assert_kind_of(Fixnum, match.end)
     assert_kind_of(String, match.subject)
-    assert_equal(0, match.start,
-                 "Match of /.*/, start should equal 0")
-    assert_equal(input.length, match.end,
-                 "Match of /.*/, end should equal input string length")
     assert_equal(input, match.subject)
   end
 
