@@ -11,16 +11,8 @@ class Grok::Match
   end
 
   public
-  def each_capture
-    @match.names.zip(@match.captures).each do |id, value|
-      if !@grok.named_captures_only
-        name = @grok.capture_name(id) || "_:#{id}"
-        yield name, value
-      else
-        yield id, value
-      end
-    end
-
+  def each_capture(&block)
+    @grok.capture(@match, block)
   end # def each_capture
 
   public

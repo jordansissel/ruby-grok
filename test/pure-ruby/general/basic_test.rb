@@ -43,7 +43,7 @@ class GrokBasicTests < Test::Unit::TestCase
   def test_grok_expanded_pattern_works_correctly
     @grok.add_pattern("test", "hello world")
     @grok.compile("%{test}")
-    assert_equal("(?<a0>hello world)", @grok.expanded_pattern)
+    assert_equal("(?<test>hello world)", @grok.expanded_pattern)
   end
 
   def test_grok_load_patterns_from_file
@@ -53,7 +53,7 @@ class GrokBasicTests < Test::Unit::TestCase
     fd.close
     @grok.add_patterns_from_file(fd.path)
     @grok.compile("%{TEST}")
-    assert_equal("(?<a0>\\d+)", @grok.expanded_pattern)
+    assert_equal("(?<TEST>\\d+)", @grok.expanded_pattern)
   end
 
   def test_grok_expanded_unknown_pattern

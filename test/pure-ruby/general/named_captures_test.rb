@@ -16,8 +16,8 @@ class NamedCapturesTest < Test::Unit::TestCase
     match = @grok.match(@log_line)
     assert_not_nil(match.captures["BASE10NUM"][0])
     assert_not_nil(match.captures["HOUR"][0])
-    assert_not_nil(match.captures["IPORHOST:clientip"][0])
-    assert_equal(match.captures["NUMBER:response"][0], "200")
+    assert_not_nil(match.captures["clientip"][0])
+    assert_equal(match.captures["response"][0], "200")
     assert_equal(match.captures["URIHOST"][0], "8rursodiol.enjin.com")
   end
 
@@ -29,9 +29,9 @@ class NamedCapturesTest < Test::Unit::TestCase
     match = @grok.match(@log_line)
     assert_equal(match.captures["BASE10NUM"], [])
     assert_equal(match.captures["HOUR"], [])
-    assert_equal(match.captures["IPORHOST:clientip"][0], "31.184.238.164")
-    assert_equal(match.captures["NUMBER:response"][0], "200")
-    assert_equal(match.captures["HTTPDATE:timestamp"][0], "24/Jul/2014:05:35:37 +0530")
+    assert_equal(match.captures["clientip"][0], "31.184.238.164")
+    assert_equal(match.captures["response"][0], "200")
+    assert_equal(match.captures["timestamp"][0], "24/Jul/2014:05:35:37 +0530")
   end
 
 end

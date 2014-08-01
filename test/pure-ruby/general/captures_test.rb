@@ -21,7 +21,7 @@ class GrokPatternCapturingTests < Test::Unit::TestCase
     @grok.compile("%{foo}")
     input = "hello world"
     match = @grok.match(input)
-    assert_equal("(?<a0>.*)", @grok.expanded_pattern)
+    assert_equal("(?<foo>.*)", @grok.expanded_pattern)
     assert_kind_of(Grok::Match, match)
     assert_kind_of(Hash, match.captures)
     assert_equal(match.captures.length, 1)
@@ -92,7 +92,7 @@ class GrokPatternCapturingTests < Test::Unit::TestCase
     assert_equal(3, match.captures.length)
     assert(match.captures.include?("foo"))
     assert(match.captures.include?("IP"))
-    assert(match.captures.include?("BASE10NUM:fizz"))
+    assert(match.captures.include?("fizz"))
   end
                 
 
@@ -100,11 +100,51 @@ class GrokPatternCapturingTests < Test::Unit::TestCase
     name = "foo"
     @grok.add_pattern(name, "\\w+")
     subname = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_abc:def"
+    expected_name = subname.split(":")[0]
     @grok.compile("%{#{name}:#{subname}}")
     match = @grok.match("hello")
     assert_not_equal(false, match)
     assert_equal(1, match.captures.length)
-    assert_equal(1, match.captures["#{name}:#{subname}"].length)
-    assert_equal("hello", match.captures["#{name}:#{subname}"][0])
+    assert_equal(1, match.captures["#{expected_name}"].length)
+    assert_equal("hello", match.captures["#{expected_name}"][0])
   end
+
+  def test_match_and_captures
+    @pattern_line = '%{COMBINEDAPACHELOG}'
+    @log_line = '31.184.238.164 - - [24/Jul/2014:05:35:37 +0530] "GET /logs/access.log HTTP/1.0" 200 69849 "http://8rursodiol.enjin.com" "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.12785 YaBrowser/13.12.1599.12785 Safari/537.36" "www.dlwindianrailways.com"'
+    grok = Grok.new(true)
+    path = "#{File.dirname(__FILE__)}/../../../patterns/pure-ruby/base"
+    grok.add_patterns_from_file(path)
+    grok.compile(@pattern_line)
+    expected_map = Hash({"clientip"=>["31.184.238.164"], "ident"=>["-"], "auth"=>["-"],
+        "timestamp"=>["24/Jul/2014:05:35:37 +0530"], "ZONE"=>["+0530"], "verb"=>["GET"],
+        "request"=>["/logs/access.log"], "httpversion"=>["1.0"], "response"=>["200"], "bytes"=>["69849"],
+        "referrer"=>["http://8rursodiol.enjin.com"], "port"=>[nil],
+        "agent"=>["\"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.12785 YaBrowser/13.12.1599.12785 Safari/537.36\""]})
+    actual_map = Hash.new { |h,k| h[k] = [] }
+    grok.match_and_capture(@log_line) { |k, v| actual_map[k] << v}
+    assert_equal(expected_map, actual_map)
+  end
+
+  def test_match_and_captures_coerce
+    @pattern_line = '%{NUMBER:bytes:int} %{NUMBER:status}'
+    @log_line = '12009 200'
+    grok = Grok.new(true)
+    path = "#{File.dirname(__FILE__)}/../../../patterns/pure-ruby/base"
+    grok.add_patterns_from_file(path)
+    grok.compile(@pattern_line)
+    expected_map = Hash({"bytes"=>[12009], "status"=>["200"]})
+    actual_map = Hash.new { |h,k| h[k] = [] }
+    grok.match_and_capture(@log_line) { |k, v| actual_map[k] << v}
+    assert_equal(expected_map, actual_map)
+
+    @pattern_line = '%{NUMBER:bytes:float} %{NUMBER:status}'
+    @log_line = '12009.34 200'
+    grok.compile(@pattern_line)
+    expected_map = Hash({"bytes"=>[12009.34], "status"=>["200"]})
+    actual_map = Hash.new { |h,k| h[k] = [] }
+    grok.match_and_capture(@log_line) { |k, v| actual_map[k] << v}
+    assert_equal(expected_map, actual_map)
+  end
+
 end

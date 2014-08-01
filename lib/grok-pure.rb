@@ -1,7 +1,8 @@
 require "rubygems"
 require "logger"
-require "grok/pure/discovery"
 require "cabin"
+require "grok/pure/discovery"
+require "grok/pure/match"
 
 # TODO(sissel): Check if 'grok' c-ext has been loaded and abort?
 class Grok
@@ -9,7 +10,7 @@ class Grok
 
   # The pattern input
   attr_accessor :pattern
-  
+
   # The fully-expanded pattern (in regex form)
   attr_accessor :expanded_pattern
 
@@ -49,12 +50,14 @@ class Grok
   GROK_ERROR_NOMATCH = 7
 
   public
-  def initialize(named_captures_only = false)
+  def initialize(named_captures_only=false)
     @patterns = {}
     @logger = Cabin::Channel.new
     @logger.subscribe(Logger.new(STDOUT))
     @logger.level = :warn
     @named_captures_only = named_captures_only
+    # Captures Lambda which is generated at Grok compile time and called at match time
+    @captures_func = nil
 
     # TODO(sissel): Throw exception if we aren't using Ruby 1.9.2 or newer.
   end # def initialize
@@ -71,7 +74,7 @@ class Grok
     file = File.new(path, "r")
     file.each do |line|
       # Skip comments
-      next if line =~ /^\s*#/ 
+      next if line =~ /^\s*#/
       # File format is: NAME ' '+ PATTERN '\n'
       name, pattern = line.gsub(/^\s*/, "").split(/\s+/, 2)
       #p name => pattern
@@ -85,12 +88,9 @@ class Grok
 
   public
   def compile(pattern)
-    @capture_map = {}
-
     iterations_left = 10000
     @pattern = pattern
     @expanded_pattern = pattern.clone
-    index = 0
 
     # Replace any instances of '%{FOO}' with that pattern.
     loop do
@@ -112,20 +112,11 @@ class Grok
         regex = @patterns[m["pattern"]]
         name = m["name"]
 
-        if @named_captures_only
-          # no semantic means we don't need to capture
-          if name.index(":").nil?
-            replacement_pattern = "(?:#{regex})"
-          else
-            # no indirection here, just use the name
-            replacement_pattern = "(?<#{name}>#{regex})"
-          end
+        if @named_captures_only && name.index(":").nil?
+          # this has no semantic (pattern:foo) so we don't need to capture
+          replacement_pattern = "(?:#{regex})"
         else
-          # fall back to indirection
-          capture = "a#{index}" # named captures have to start with letters?
-          replacement_pattern = "(?<#{capture}>#{regex})"
-          @capture_map[capture] = name
-          index += 1
+          replacement_pattern = "(?<#{name}>#{regex})"
         end
 
         # Ruby's String#sub() has a bug (or misfeature) that causes it to do bad
@@ -141,13 +132,34 @@ class Grok
 
     @regexp = Regexp.new(@expanded_pattern, Regexp::MULTILINE)
     @logger.debug? and @logger.debug("Grok compiled OK", :pattern => pattern,
-                  :expanded_pattern => @expanded_pattern)
-  end # def compile
+                                     :expanded_pattern => @expanded_pattern)
+
+    @captures_func = compile_captures_func(@regexp)
+  end
+
+  private
+  # compiles the captures lambda so runtime match can be optimized
+  def compile_captures_func(re)
+    re_match = ["lambda do |match, &block|"]
+    re.named_captures.each do |name, indices|
+      pattern, name, coerce = name.split(":")
+      indices.each do |index|
+        coerce = case coerce
+                   when "int"; ".to_i"
+                   when "float"; ".to_f"
+                   else; ""
+                 end
+        name = pattern if name.nil?
+        re_match << "  block.call(#{name.inspect}, match[#{index}]#{coerce})"
+      end
+    end
+    re_match << "end"
+    return eval(re_match.join("\n"))
+  end # def compile_captures_func
 
   public
   def match(text)
     match = @regexp.match(text)
-
     if match
       grokmatch = Grok::Match.new
       grokmatch.subject = text
@@ -160,6 +172,22 @@ class Grok
       return false
     end
   end # def match
+
+  # Optimized match and capture instead of calling them separately
+  def match_and_capture(text)
+    match = @regexp.match(text)
+    if match
+      @logger.debug? and @logger.debug("Regexp match object", :names => match.names,
+                                       :captures => match.captures)
+      @captures_func.call(match) { |k,v| yield k,v }
+    else
+      return false
+    end
+  end # def match_and_capture
+
+  def capture(match, block)
+    @captures_func.call(match) { |k,v| block.call k,v }
+  end # def capture
 
   public
   def discover(input)
@@ -175,10 +203,4 @@ class Grok
     @discover.logger = @logger
   end # def init_discover
 
-  public
-  def capture_name(id)
-    return @capture_map[id]
-  end # def capture_name
 end # Grok
-
-require "grok/pure/match"
