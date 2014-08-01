@@ -182,4 +182,3 @@ class Grok
 end # Grok
 
 require "grok/pure/match"
-require "grok/pure/pile"
