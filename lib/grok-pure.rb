@@ -46,7 +46,7 @@ class Grok
   GROK_ERROR_NOMATCH = 7
 
   public
-  def initialize()
+  def initialize
     @patterns = {}
     @logger = Cabin::Channel.new
     @logger.subscribe(Logger.new(STDOUT))
