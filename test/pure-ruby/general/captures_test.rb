@@ -112,10 +112,10 @@ class GrokPatternCapturingTests < Test::Unit::TestCase
   def test_match_and_captures
     @pattern_line = '%{COMBINEDAPACHELOG}'
     @log_line = '31.184.238.164 - - [24/Jul/2014:05:35:37 +0530] "GET /logs/access.log HTTP/1.0" 200 69849 "http://8rursodiol.enjin.com" "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.12785 YaBrowser/13.12.1599.12785 Safari/537.36" "www.dlwindianrailways.com"'
-    grok = Grok.new(true)
+    grok = Grok.new
     path = "#{File.dirname(__FILE__)}/../../../patterns/pure-ruby/base"
     grok.add_patterns_from_file(path)
-    grok.compile(@pattern_line)
+    grok.compile(@pattern_line, true)
     expected_map = Hash({"clientip"=>["31.184.238.164"], "ident"=>["-"], "auth"=>["-"],
         "timestamp"=>["24/Jul/2014:05:35:37 +0530"], "ZONE"=>["+0530"], "verb"=>["GET"],
         "request"=>["/logs/access.log"], "httpversion"=>["1.0"], "response"=>["200"], "bytes"=>["69849"],
@@ -129,10 +129,10 @@ class GrokPatternCapturingTests < Test::Unit::TestCase
   def test_match_and_captures_coerce
     @pattern_line = '%{NUMBER:bytes:int} %{NUMBER:status}'
     @log_line = '12009 200'
-    grok = Grok.new(true)
+    grok = Grok.new
     path = "#{File.dirname(__FILE__)}/../../../patterns/pure-ruby/base"
     grok.add_patterns_from_file(path)
-    grok.compile(@pattern_line)
+    grok.compile(@pattern_line, true)
     expected_map = Hash({"bytes"=>[12009], "status"=>["200"]})
     actual_map = Hash.new { |h,k| h[k] = [] }
     grok.match_and_capture(@log_line) { |k, v| actual_map[k] << v}
@@ -140,7 +140,7 @@ class GrokPatternCapturingTests < Test::Unit::TestCase
 
     @pattern_line = '%{NUMBER:bytes:float} %{NUMBER:status}'
     @log_line = '12009.34 200'
-    grok.compile(@pattern_line)
+    grok.compile(@pattern_line, true)
     expected_map = Hash({"bytes"=>[12009.34], "status"=>["200"]})
     actual_map = Hash.new { |h,k| h[k] = [] }
     grok.match_and_capture(@log_line) { |k, v| actual_map[k] << v}

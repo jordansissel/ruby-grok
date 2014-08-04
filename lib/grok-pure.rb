@@ -20,10 +20,6 @@ class Grok
   # The dictionary of pattern names to pattern expressions
   attr_accessor :patterns
 
-  # Flag to indicate if we want only named captures like PATTERN:foo
-  # This will optimize the match call if set to true.
-  attr_accessor :named_captures_only
-
   PATTERN_RE = \
     /%\{    # match '%{' not prefixed with '\'
        (?<name>     # match the pattern name
@@ -50,12 +46,11 @@ class Grok
   GROK_ERROR_NOMATCH = 7
 
   public
-  def initialize(named_captures_only=false)
+  def initialize()
     @patterns = {}
     @logger = Cabin::Channel.new
     @logger.subscribe(Logger.new(STDOUT))
     @logger.level = :warn
-    @named_captures_only = named_captures_only
     # Captures Lambda which is generated at Grok compile time and called at match time
     @captures_func = nil
 
@@ -87,7 +82,7 @@ class Grok
   end # def add_patterns_from_file
 
   public
-  def compile(pattern)
+  def compile(pattern, named_captures_only=false)
     iterations_left = 10000
     @pattern = pattern
     @expanded_pattern = pattern.clone
@@ -112,7 +107,7 @@ class Grok
         regex = @patterns[m["pattern"]]
         name = m["name"]
 
-        if @named_captures_only && name.index(":").nil?
+        if named_captures_only && name.index(":").nil?
           # this has no semantic (pattern:foo) so we don't need to capture
           replacement_pattern = "(?:#{regex})"
         else

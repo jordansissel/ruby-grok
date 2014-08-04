@@ -22,10 +22,10 @@ class NamedCapturesTest < Test::Unit::TestCase
   end
 
   def test_named_captures_only_true
-    @grok = Grok.new(true)
+    @grok = Grok.new
     path = "#{File.dirname(__FILE__)}/../../../patterns/pure-ruby/base"
     @grok.add_patterns_from_file(path)
-    @grok.compile("%{COMBINEDAPACHELOG}")
+    @grok.compile("%{COMBINEDAPACHELOG}", true)
     match = @grok.match(@log_line)
     assert_equal(match.captures["BASE10NUM"], [])
     assert_equal(match.captures["HOUR"], [])
