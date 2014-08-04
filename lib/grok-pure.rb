@@ -10,13 +10,11 @@ class Grok
 
   # The pattern input
   attr_accessor :pattern
-
   # The fully-expanded pattern (in regex form)
   attr_accessor :expanded_pattern
 
   # The logger
   attr_accessor :logger
-
   # The dictionary of pattern names to pattern expressions
   attr_accessor :patterns
 
