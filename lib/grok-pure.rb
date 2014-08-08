@@ -101,9 +101,6 @@ class Grok
       end
 
       if @patterns.include?(m["pattern"])
-        # create a named capture index that we can push later as the named
-        # pattern. We do this because ruby regexp can't capture something
-        # by the same name twice.
         regex = @patterns[m["pattern"]]
         name = m["name"]
 
@@ -175,6 +172,7 @@ class Grok
       @logger.debug? and @logger.debug("Regexp match object", :names => match.names,
                                        :captures => match.captures)
       @captures_func.call(match) { |k,v| yield k,v }
+      return true
     else
       return false
     end
