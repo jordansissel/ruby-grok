@@ -124,6 +124,16 @@ class GrokPatternCapturingTests < Test::Unit::TestCase
     actual_map = Hash.new { |h,k| h[k] = [] }
     grok.match_and_capture(@log_line) { |k, v| actual_map[k] << v}
     assert_equal(expected_map, actual_map)
+
+    grok.compile('%{INT:foo}|%{WORD:foo}', true)
+    actual_map = Hash.new { |h,k| h[k] = [] }
+    grok.match_and_capture("123 world") { |k, v| actual_map[k] << v}
+    assert_equal(actual_map, Hash({"foo"=>["123", nil]}))
+
+    actual_map = Hash.new { |h,k| h[k] = [] }
+    grok.match_and_capture("hello world") { |k, v| actual_map[k] << v}
+    assert_equal(actual_map, Hash({"foo"=>[nil, "hello"]}))
+
   end
 
   def test_match_and_captures_coerce
@@ -145,6 +155,15 @@ class GrokPatternCapturingTests < Test::Unit::TestCase
     actual_map = Hash.new { |h,k| h[k] = [] }
     grok.match_and_capture(@log_line) { |k, v| actual_map[k] << v}
     assert_equal(expected_map, actual_map)
+  end
+
+  def test_match_no_capture
+    grok = Grok.new
+    grok.compile("^403$")
+    has_captures = false
+    matched = grok.match_and_capture("403") { |k, v| has_captures = true}
+    assert(matched, "Did not match ^403$")
+    assert(!has_captures)
   end
 
 end
