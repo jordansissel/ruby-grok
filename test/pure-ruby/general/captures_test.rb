@@ -162,7 +162,11 @@ class GrokPatternCapturingTests < Test::Unit::TestCase
     grok.compile("^403$")
     has_captures = false
     matched = grok.match_and_capture("403") { |k, v| has_captures = true}
-    assert(matched, "Did not match ^403$")
+    assert(matched, "Expected to match ^403$")
+    assert(!has_captures)
+
+    matched = grok.match_and_capture("abc 403") { |k, v| has_captures = true}
+    assert(!matched, "Not expected to match ^403$")
     assert(!has_captures)
   end
 
