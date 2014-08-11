@@ -2,7 +2,7 @@ $: << File.join(File.dirname(__FILE__), "..", "..", "..", "lib")
 require 'grok-pure'
 require 'test/unit'
 
-class GrokPatternCapturingTests < Test::Unit::TestCase
+class GrokMultilinePatternCapturingTests < Test::Unit::TestCase
   def setup
     @grok = Grok.new
     path = "#{File.dirname(__FILE__)}/../../../patterns/pure-ruby/base"
