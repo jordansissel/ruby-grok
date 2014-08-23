@@ -189,6 +189,12 @@ class Grok
     return @discover.discover(input)
   end # def discover
 
+  public
+  # Light weight is match without creating any objects
+  def is_match?(text)
+    text =~ @regexp
+  end
+
   private
   def init_discover
     require "grok/pure/discovery"

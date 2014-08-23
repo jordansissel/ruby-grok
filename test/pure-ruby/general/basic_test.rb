@@ -68,4 +68,16 @@ class GrokBasicTests < Test::Unit::TestCase
       @grok.compile("%{test} bar %{foo} baz")
     end
   end
+
+  def test_is_match
+    path = "#{File.dirname(__FILE__)}/../../../patterns/pure-ruby/base"
+    @grok.add_patterns_from_file(path)
+    @grok.compile("%{NUMBER}", true)
+    assert(@grok.is_match?("1234"))
+    assert(!@grok.is_match?("abc"))
+
+    @grok.compile("^%{NUMBER} %{TIME}", true)
+    assert(@grok.is_match?("120913 12:04:33 abc foo"))
+    assert(!@grok.is_match?("foo 120913 12:04:33 abc foo"))
+  end
 end
