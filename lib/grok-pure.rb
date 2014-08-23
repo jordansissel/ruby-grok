@@ -190,8 +190,9 @@ class Grok
   end # def discover
 
   public
-  # Light weight is match without creating any objects
-  def is_match?(text)
+  # Light weight method to check match without creating any objects
+  # returns nil if does not match
+  def matches?(text)
     text =~ @regexp
   end
 
