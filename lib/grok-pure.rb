@@ -60,6 +60,9 @@ class Grok
   public
   def add_pattern(name, pattern)
     @logger.info("Adding pattern", name => pattern)
+    if @logger.debug? and pattern.end_with?("\s")
+      @logger.debug("Trailing whitespace found in pattern", name => pattern)
+    end
     @patterns[name] = pattern
     return nil
   end # def add_pattern
