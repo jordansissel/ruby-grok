@@ -79,6 +79,8 @@ class Grok
       add_pattern(name, pattern.chomp)
     end
     return nil
+  ensure
+    file.close
   end # def add_patterns_from_file
 
   public
