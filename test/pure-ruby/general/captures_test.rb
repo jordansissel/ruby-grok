@@ -88,7 +88,6 @@ class GrokPatternCapturingTests < Test::Unit::TestCase
     @grok.add_patterns_from_file(path)
     @grok.compile("%{foo=%{IP} %{BASE10NUM:fizz}}")
     match = @grok.match("1.2.3.4 300.4425")
-    p match.captures
     assert_equal(3, match.captures.length)
     assert(match.captures.include?("foo"))
     assert(match.captures.include?("IP"))
@@ -168,6 +167,29 @@ class GrokPatternCapturingTests < Test::Unit::TestCase
     matched = grok.match_and_capture("abc 403") { |k, v| has_captures = true}
     assert(!matched, "Not expected to match ^403$")
     assert(!has_captures)
+  end
+
+  def test_match_alternation
+    grok = Grok.new
+    path = "#{File.dirname(__FILE__)}/../../../patterns/pure-ruby/base"
+    grok.add_patterns_from_file(path)
+    # test for alternation and cerced capture
+    grok.compile("test (N/A|%{BASE10NUM:duration:int}ms)")
+    original_value, coerced_value = nil
+    grok.match_and_capture("test N/A") do |k, v, orig_v|
+        coerced_value = v
+        original_value = orig_v
+    end
+    assert_equal(original_value, nil)
+    assert_equal(coerced_value, 0)
+
+    grok.match_and_capture("test 28ms") do |k, v, orig_v|
+        coerced_value = v
+        original_value = orig_v
+    end
+
+    assert_equal(original_value, "28")
+    assert_equal(coerced_value, 28)
   end
 
 end

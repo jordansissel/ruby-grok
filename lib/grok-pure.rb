@@ -144,7 +144,9 @@ class Grok
                    else; ""
                  end
         name = pattern if name.nil?
-        re_match << "  block.call(#{name.inspect}, match[#{index}]#{coerce})"
+        # return the capture name, coerced value and original value to the caller
+        # we do all this coerce logic at compile time to optimize for run time
+        re_match << "  block.call(#{name.inspect}, match[#{index}]#{coerce}, match[#{index}])"
       end
     end
     re_match << "end"
@@ -173,7 +175,7 @@ class Grok
     if match
       @logger.debug? and @logger.debug("Regexp match object", :names => match.names,
                                        :captures => match.captures)
-      @captures_func.call(match) { |k,v| yield k,v }
+      @captures_func.call(match) { |k,v,orig_v| yield k,v,orig_v }
       return true
     else
       return false
@@ -181,7 +183,7 @@ class Grok
   end # def match_and_capture
 
   def capture(match, block)
-    @captures_func.call(match) { |k,v| block.call k,v }
+    @captures_func.call(match) { |k,v,orig_v| block.call k,v,orig_v }
   end # def capture
 
   public
