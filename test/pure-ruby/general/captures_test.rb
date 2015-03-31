@@ -169,27 +169,29 @@ class GrokPatternCapturingTests < Test::Unit::TestCase
     assert(!has_captures)
   end
 
-  def test_match_alternation
+  def test_match_absense_conditional
     grok = Grok.new
     path = "#{File.dirname(__FILE__)}/../../../patterns/pure-ruby/base"
+    has_captures = false
     grok.add_patterns_from_file(path)
     # test for alternation and cerced capture
     grok.compile("test (N/A|%{BASE10NUM:duration:int}ms)")
-    original_value, coerced_value = nil
-    grok.match_and_capture("test N/A") do |k, v, orig_v|
-        coerced_value = v
-        original_value = orig_v
+    matched = grok.match_and_capture("test N/A") do |k,v|
+      assert_equal(v, nil)
+      has_captures = true
     end
-    assert_equal(original_value, nil)
-    assert_equal(coerced_value, 0)
+    assert(matched)
+    assert(has_captures) # empty capture
+  end
 
-    grok.match_and_capture("test 28ms") do |k, v, orig_v|
-        coerced_value = v
-        original_value = orig_v
-    end
-
-    assert_equal(original_value, "28")
-    assert_equal(coerced_value, 28)
+  def test_match_presence_conditional
+    grok = Grok.new
+    path = "#{File.dirname(__FILE__)}/../../../patterns/pure-ruby/base"
+    has_captures = false
+    grok.add_patterns_from_file(path)
+    # test for alternation and cerced capture
+    grok.compile("test (N/A|%{BASE10NUM:duration:int}ms)")
+    grok.match_and_capture("test 28ms") { |k, v| assert_equal(v, 28) }
   end
 
 end
