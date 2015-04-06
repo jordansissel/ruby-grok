@@ -144,7 +144,12 @@ class Grok
                    else; ""
                  end
         name = pattern if name.nil?
-        re_match << "  block.call(#{name.inspect}, match[#{index}]#{coerce})"
+        if coerce
+          re_match << "  m = match[#{index}]"
+          re_match << "  block.call(#{name.inspect}, (m ? m#{coerce} : m))"
+        else
+          re_match << "  block.call(#{name.inspect}, match[#{index}])"
+        end
       end
     end
     re_match << "end"
