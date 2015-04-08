@@ -68,4 +68,10 @@ class GrokBasicTests < Test::Unit::TestCase
       @grok.compile("%{test} bar %{foo} baz")
     end
   end
+
+  def test_grok_trailing_whitespace_in_pattern
+    assert_raise(Grok::PatternError, "Trailing whitespace found in pattern: \"blah \"") do
+      @grok.add_pattern("test", "blah ")
+    end
+  end
 end

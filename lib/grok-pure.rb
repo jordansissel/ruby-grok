@@ -60,6 +60,9 @@ class Grok
   public
   def add_pattern(name, pattern)
     @logger.info("Adding pattern", name => pattern)
+    if pattern =~ /\s$/
+      raise PatternError, "Trailing whitespace found in pattern: \"#{pattern}\""
+    end
     @patterns[name] = pattern
     return nil
   end # def add_pattern
