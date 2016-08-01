@@ -12,7 +12,7 @@ class Grok::Match
 
   public
   def each_capture(&block)
-    @grok.capture(@match, block)
+    @grok.capture(@match, &block)
   end # def each_capture
 
   public
