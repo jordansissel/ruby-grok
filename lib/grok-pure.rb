@@ -1,4 +1,4 @@
-require "rubygems"
+ require "rubygems"
 require "logger"
 require "cabin"
 require "grok/pure/discovery"
@@ -172,21 +172,34 @@ class Grok
     end
   end # def match
 
+  # Returns the matched regexp object directly for performance at the
+  # cost of usability.
+  #
+  # Returns MatchData on success, nil on failure.
+  #
+  # Can be used with #capture
+  def execute(text)
+    @regexp.match(text)
+  end
+
   # Optimized match and capture instead of calling them separately
+  # This could be DRYed up by using #match and #capture directly
+  # but there's a bit of a worry that that may lower perf.
+  # This should be benchmarked!
   def match_and_capture(text)
-    match = @regexp.match(text)
+    match = execute(text)
     if match
       @logger.debug? and @logger.debug("Regexp match object", :names => match.names,
                                        :captures => match.captures)
-      @captures_func.call(match) { |k,v| yield k,v }
+      capture(match) {|k,v| yield k,v}
       return true
     else
       return false
     end
   end # def match_and_capture
 
-  def capture(match, block)
-    @captures_func.call(match) { |k,v| block.call k,v }
+  def capture(match, &block)    
+    @captures_func.call(match,&block)
   end # def capture
 
   public

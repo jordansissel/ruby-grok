@@ -14,16 +14,16 @@ def init_grok(named_captures_only)
 end
 
 Benchmark.bmbm(10) do |bm|
-  bm.report("100k Named Captures On") do
+  bm.report("10m Named Captures On") do
     grok = init_grok(true)
-    (1..100000).each do
+    (1..10_000_000).each do
       match = grok.match(@log_line)
       match.each_capture { |name, val| }
     end
   end
-  bm.report("100k Named Captures Off") do
+  bm.report("10m Named Captures Off") do
     grok = init_grok(false)
-    (1..100000).each do
+    (1..10_000_000).each do
       match = grok.match(@log_line)
       match.each_capture { |name, val| }
     end
