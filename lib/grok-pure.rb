@@ -59,7 +59,7 @@ class Grok
 
   public
   def add_pattern(name, pattern)
-    @logger.info("Adding pattern", name => pattern)
+    @logger.debug("Adding pattern", name => pattern)
     @patterns[name] = pattern
     return nil
   end # def add_pattern
