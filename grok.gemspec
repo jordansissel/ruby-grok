@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   files = Dir.glob("lib/**/*.rb")
-  files + Dir.glob("patterns/**")
+  files + Dir.glob("patterns/**/*")
   files + Dir.glob("test/")
 
   #svnrev = %x{svn info}.split("\n").grep(/Revision:/).first.split(" ").last.to_i
