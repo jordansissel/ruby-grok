@@ -87,7 +87,7 @@ class Grok
   def compile(pattern, named_captures_only=false)
     iterations_left = 10000
     @pattern = pattern
-    @expanded_pattern = pattern.clone
+    @expanded_pattern = pattern.dup
 
     # Replace any instances of '%{FOO}' with that pattern.
     loop do
