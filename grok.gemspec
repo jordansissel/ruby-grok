@@ -20,5 +20,5 @@ Gem::Specification.new do |spec|
   spec.authors = ["Jordan Sissel", "Pete Fritchman"]
   spec.email = ["jls@semicomplete.com", "petef@databits.net"]
   spec.homepage = "http://code.google.com/p/semicomplete/wiki/Grok"
+  spec.metadata = { "source_code_uri" => "https://github.com/jordansissel/ruby-grok" }
 end
-
