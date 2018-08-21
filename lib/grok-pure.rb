@@ -209,6 +209,13 @@ class Grok
     return @discover.discover(input)
   end # def discover
 
+  public
+  # Light weight method to check match without creating any objects
+  # returns nil if does not match
+  def matches?(text)
+    text =~ @regexp
+  end
+
   private
   def init_discover
     require "grok/pure/discovery"
