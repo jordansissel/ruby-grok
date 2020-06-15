@@ -18,7 +18,6 @@ grok.add_patterns_from_file("../..//patterns/base")
 input = "2010-04-18T15:06:02Z"
 pattern = "%{TIMESTAMP_ISO8601}"
 grok.compile(pattern)
-grok.compile(pattern)
 puts "Input: #{input}"
 puts "Pattern: #{pattern}"
 puts "Full: #{grok.expanded_pattern}"
